@@ -2,17 +2,17 @@
 Getting info from some of Dell storages (Unity, XIO, Isilon, VNX, Data Domain) through API and CLI with Node.js using TypeScript
 
 ### Classes for each storage:
-  cDataDomain.ts
-  cIsilon.ts
-  cUnity.ts
-  cVNX.ts
-  cXIO.ts
+  * cDataDomain.ts
+  * cIsilon.ts
+  * cUnity.ts
+  * cVNX.ts
+  * cXIO.ts
 
 ### Credentials info to use:
-  accounts.ts
+  * accounts.ts
 
 ### Main program:
-  get-storages.ts
+  * get-storages.ts
   
 
 ### Running program:
@@ -25,5 +25,5 @@ Getting info from some of Dell storages (Unity, XIO, Isilon, VNX, Data Domain) t
 
 #### 2. Transpile get-storages.ts to get-storages.js and then execute the last
 
-`npx tsc		
-node build/get-storages.js`
+`npx tsc`
+`node build/get-storages.js`
