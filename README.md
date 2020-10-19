@@ -19,11 +19,11 @@ Getting info from some of Dell storages (Unity, XIO, Isilon, VNX, Data Domain) t
 
 #### 1. Transpiling and executing on the fly
 
-`npx ts-node src/get-storages.ts`
+> `npx ts-node src/get-storages.ts`
 
 - OR -
 
 #### 2. Transpile get-storages.ts to get-storages.js and then execute the last
 
-`npx tsc`
-`node build/get-storages.js`
+> `npx tsc`
+> `node build/get-storages.js`
