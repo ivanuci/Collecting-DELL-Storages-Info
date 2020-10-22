@@ -97,7 +97,7 @@ export default class cVNX {
                     case 'capacity':
                     case 'disks': {
 
-                        if (result['disks'].length === 0) {
+                        if (result[command] && result[command].length === 0) {
 
                             let disks:any = []
                             let disk:any = null
