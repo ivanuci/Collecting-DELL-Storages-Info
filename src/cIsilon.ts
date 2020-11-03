@@ -44,6 +44,9 @@ export default class cIsilon {
   private configDisks: any;
   private configCapacity: any;
   private configDatastores: any;
+  private configAlerts: any;
+  private configUptime: any;
+  
 
   constructor(server: any, account: Account) {
     this.server = server;
@@ -119,6 +122,27 @@ export default class cIsilon {
       jar: this.cookieJar,
       withCredentials: true,
     };
+
+    this.configAlerts = {
+        method: 'get',
+        proxy: false,
+        httpsAgent: this.httpsAgent,
+        url: `https://${server.ip}:8080/platform/3/event/eventgroup-occurrences?resolved=false&ignore=false`,
+        headers : this.headersBasic,
+        jar: this.cookieJar,
+        withCredentials: true
+    }
+
+    this.configUptime = {
+        method: 'get',
+        proxy: false,
+        httpsAgent: this.httpsAgent,
+        url: `https://${server.ip}:8080/platform/1/statistics/current?key=node.uptime&devid=all`,
+        headers : this.headersBasic,
+        jar: this.cookieJar,
+        withCredentials: true
+    }    
+ 
   }
 
   async request(commands: Array<string>) {
@@ -209,6 +233,48 @@ export default class cIsilon {
               });
               break;
             } //case datastores
+              
+            case 'alerts': {
+
+                await axios(thisClass.configAlerts).then(async function(response: any) {
+
+                    result[command] = response.data["eventgroups"].map(function(el:any) {
+
+                        delete el.ignore
+                        delete el.ignore_time
+                        delete el.resolve_time
+                        delete el.resolved
+                        delete el.resolver
+                        el['last_event'] = moment.unix(el['last_event']).toISOString()
+                        el['time_noticed'] = moment.unix(el['time_noticed']).toISOString()
+                        el['specifier'] = JSON.stringify(el['specifier'])
+                        el['causes'] = JSON.stringify(el['causes'])
+                        el['channels'] = JSON.stringify(el['channels'])
+                        return el;
+                    })
+
+                })
+                break;
+            } //case alerts
+
+            //storage nodes uptime
+            case 'uptime': {
+
+                await axios(thisClass.configUptime).then(async function(response: any) {
+
+                    result[command] = response.data["stats"].map((node:any) => {
+                        let nNode = { 
+                            node: 'Node ' + node['devid'], 
+                            time: node['time'], 
+                            uptime: node['value'] 
+                        }
+                        return nNode;
+                    })
+
+                })
+                break;
+            } //case uptime
+                            
           } //switch
         } //for commands
       });
