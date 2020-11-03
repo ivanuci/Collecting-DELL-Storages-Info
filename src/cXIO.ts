@@ -1,5 +1,6 @@
 import axios from "axios";
 import * as https from "https";
+const moment = require('moment');
 
 interface Account {
   username: string;
@@ -41,6 +42,8 @@ export default class cXIO {
   private configInfo: any;
   private configDisks: any;
   private configDatastores: any;
+  private configAlerts: any;
+  private configUptime: any;
 
   constructor(server: any, account: Account) {
     this.server = server;
@@ -86,6 +89,23 @@ export default class cXIO {
       url: `https://${server.ip}/api/json/v2/types/volumes?cluster-index=${server.cluster}&full=1&prop=name&prop=naa-name&prop=vol-size&prop=obj-severity&prop=logical-space-in-use`,
       headers: this.headersBasic,
     };
+    
+    this.configAlerts = {
+        method: 'get',
+        proxy: false,
+        httpsAgent: this.httpsAgent,
+        url: `https://${server.ip}/api/json/v2/types/alerts?full=1`,
+        headers : this.headersBasic,
+    }
+
+    this.configUptime = {
+        method: 'get',
+        proxy: false,
+        httpsAgent: this.httpsAgent,
+        url: `https://${server.ip}/api/json/v2/types/storage-controllers?cluster-index=${server.cluster}&full=1`,
+        headers : this.headersBasic,
+    }
+
   }
 
   async request(commands: Array<string>) {
@@ -179,6 +199,51 @@ export default class cXIO {
               result[command] = capacity;
               break;
             } //case disks
+              
+            case 'alerts': {
+
+                await axios(thisClass.configAlerts).then(async function(response:any) {
+
+                    let alerts:any = response.data["alerts"]
+
+                    //get only this cluster alerts
+                    if (alerts) {
+                        result[command] = alerts
+                            .filter(function(alert:any){ 
+                                return alert['sys-name'] === info.data["content"]["name"]; 
+                            })
+                            .map(function(el:any){
+
+                                el['raise-time'] = moment.unix(el['raise-time'].substring(0,10)).toISOString()
+                                return el;    
+                            })
+                    }
+
+                })
+                break;
+            } //case alerts
+
+            //storage controllers uptime
+            case 'uptime': {
+
+                await axios(thisClass.configUptime).then(async function(scs:any) {
+
+                    let time = Math.floor(new Date().getTime() / 1000)
+                    let controllers = scs.data["storage-controllers"]
+                    if (controllers) result[command] = controllers.map((sc:any) => {
+
+                        let nNode = { 
+                            node: sc['name'], 
+                            time: time, 
+                            uptime: time - sc['sc-start-timestamp']
+                        }
+                        return nNode;    
+                    })
+
+                })
+                break;
+            } //case uptime
+              
           } //switch
         } //for commands
       }); //axios configInfo
