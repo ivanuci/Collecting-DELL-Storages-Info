@@ -37,6 +37,7 @@ export default class cDataDomain {
   private configLogout: any;
   private configInfo: any;
   private configMtrees: any;
+  private configAlerts: any;
 
   constructor(server: any, account: Account) {
     this.server = server;
@@ -90,6 +91,16 @@ export default class cDataDomain {
       url: `https://${server.ip}:3009/rest/v1.0/dd-systems/0/mtrees`,
       headers: this.headersToken,
     };
+    
+    // TODO: alerts info
+    this.configAlerts = {
+        method: 'get',
+        proxy: false,
+        httpsAgent: this.httpsAgent,
+        url: `https://${server.ip}:3009/rest/v1.0/dd-systems/0/alerts/notify-lists`, ///notify-lists/default
+        headers : this.headersToken
+    }
+    
   }
 
   async request(commands: Array<string>) {
@@ -172,6 +183,31 @@ export default class cDataDomain {
                 });
                 break;
               } //case mtrees
+                
+              //TODO: alerts info
+              case 'alerts': {
+
+                  await axios(thisClass.configAlerts).then(async function(response: any) {
+
+                      result[command] = response.data["notify_lists"]
+
+                  })
+                  break;
+              } //case alerts   
+
+              //storage module uptime
+              case 'uptime': {
+
+                  result[command] = [
+                      {
+                          node: info.data['model'], 
+                          time: Math.floor(new Date().getTime() / 1000), 
+                          uptime: info.data['uptime_secs']
+                      }
+                  ]
+                  break;
+              } //case uptime                   
+                
             } //switch
           } //commands
         }); //axios configInfo
