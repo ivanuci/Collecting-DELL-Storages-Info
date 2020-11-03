@@ -45,6 +45,10 @@ export default class cUnity {
   private configCapacity: any;
   private configTier: any;
   private configDatastores: any;
+  private configAlerts: any;
+  private configUptimeFirst: any;
+  private configUptimeSecond: any;
+  
 
   constructor(server: any, account: Account) {
     this.server = server;
@@ -137,6 +141,41 @@ export default class cUnity {
       jar: this.cookieJar,
       withCredentials: true,
     };
+    
+    this.configAlerts = {
+        method: 'get',
+        proxy: false,
+        httpsAgent: this.httpsAgent,
+        url: `https://${server.ip}/api/types/alert/instances?fields=id,severity,description,component,message,resolution,timestamp,isAcknowledged,state&compact=true`, //&filter=state!=2&compact=true`,
+        headers : this.headersToken,
+        jar: this.cookieJar,
+        withCredentials: true
+    }
+
+    this.configUptimeFirst = {
+        method: 'post',
+        proxy: false,
+        httpsAgent: this.httpsAgent,
+        url: `https://${server.ip}/api/types/metricRealTimeQuery/instances`, 
+        headers : this.headersToken,
+        jar: this.cookieJar,
+        withCredentials: true,
+        data: { 
+            "paths": ["sp.*.cpu.uptime"],
+            "interval": "5"
+        }
+    }
+
+    this.configUptimeSecond = {
+        method: 'get',
+        proxy: false,
+        httpsAgent: this.httpsAgent,
+        url: `https://${server.ip}/api/types/metricQueryResult/instances?filter=queryId EQ `, 
+        headers : this.headersToken,
+        jar: this.cookieJar,
+        withCredentials: true
+    }    
+    
   }
 
   async request(commands: Array<string>) {
@@ -240,6 +279,74 @@ export default class cUnity {
               });
               break;
             } //case datastores
+              
+            case 'alerts': {
+
+                await axios(thisClass.configAlerts).then(async function(response: any) {
+
+                    let severityInfo:any = {
+                        0:'EMERGENCY',
+                        1:'ALERT',
+                        2:'CRITICAL',
+                        3:'ERROR',
+                        4:'WARNING',
+                        5:'NOTICE',
+                        6:'INFO',
+                        7:'DEBUG',
+                        8:'OK'
+                    }
+
+                    result[command] = response.data["entries"].map(function(el:any) {
+                        let alert:any = {}
+                        alert = el['content']
+                        alert['severityInfo'] = severityInfo[alert['severity']]
+                        return alert;
+                    })
+
+                })
+                break;
+            } //case alerts
+
+            //storage processors uptime
+            case 'uptime': {
+
+                await axios(thisClass.configUptimeFirst).then(async function(realtime:any) {
+
+                    if (realtime.data["content"] && realtime.data["content"]["id"]) {
+
+                        let id = realtime.data["content"]["id"]
+                        let configUptimeSecondId = { ...thisClass.configUptimeSecond }
+                        configUptimeSecondId.url += id
+
+                        let entries:any = []
+                        let counter = 0
+
+                        // wait for answer (100 retries)
+                        while (entries.length === 0 && counter < 100) {
+                            await axios(configUptimeSecondId).then(async function(upt:any) {
+                                entries = upt.data['entries']    
+                            })    
+                            counter++
+                        }
+
+                        let content  = entries[0]['content']
+                        let time = Math.floor((new Date(content['timestamp'])).getTime() / 1000)
+
+                        result[command] = Object.keys(content['values']).map((key:string) => {
+                            let nNode = { 
+                                node: key, 
+                                time: time, 
+                                uptime: content['values'][key] 
+                            }
+                            return nNode;    
+                        })
+
+                    }
+
+                })
+                break;
+            } //case uptime
+              
           } //switch
         } //for commands
       });
