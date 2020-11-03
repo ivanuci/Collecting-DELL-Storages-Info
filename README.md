@@ -8,7 +8,7 @@ Getting info from some of Dell storages (Unity, XIO, Isilon, VNX, Data Domain) t
   * cVNX.ts
   * cXIO.ts
 
-### Credentials info to use:
+### Credentials to use:
   * accounts.ts
 
 ### Main program:
