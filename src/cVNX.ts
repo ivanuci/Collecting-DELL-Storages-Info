@@ -49,13 +49,12 @@ export default class cVNX {
             info: { name:'', model:'' }
         };
 
-        let naviseccli:any = async function(server:any, account:Account, args:string) {
+        let naviseccli:any = async function(server:any, account:Account, args:string, extParamvalue:boolean = true) {
             
             let paramArray:any = []
             let login = ['-User', account.username, '-Password', account.password, '-Scope', '0', '-Xml', '-h', server]
 
             try {
-                //naviseccli installed on Linux
                 let response = spawn('/opt/Navisphere/bin/naviseccli', login.concat(args.split(" ")))
             
                 let dataXml = ''
@@ -64,8 +63,8 @@ export default class cVNX {
                 }
     
                 await parseString(dataXml, function (err:any, data:any) {
-                    paramArray = data['CIM']['MESSAGE'][0]['SIMPLERSP'][0]['METHODRESPONSE'][0]['PARAMVALUE']
-                    if (paramArray.length === 1) paramArray = paramArray[0]['VALUE'][0]['PARAMVALUE']   //for pools
+                    paramArray = data['CIM']['MESSAGE'][0]['SIMPLERSP'][0]['METHODRESPONSE'][0]['PARAMVALUE']   //pools, alerts
+                    if (extParamvalue) paramArray = paramArray[0]['VALUE'][0]['PARAMVALUE']                     //others
                 })    
             }
             catch (err){
@@ -119,7 +118,7 @@ export default class cVNX {
                             //unconfigured = Free Raw Disks, free = Free Storage Pools
                             let capacity:Capacity = { total:0, used :0, free:0, available:0, configured:0, unconfigured:0 }
 
-                            let pools = await naviseccli(thisClass.server.ip, thisClass.account, 'storagepool -list -capacities')
+                            let pools = await naviseccli(thisClass.server.ip, thisClass.account, 'storagepool -list -capacities', false)
                             pools.forEach(function (el:any) {
                                 if (el['$']['NAME'] === 'Available Capacity (Blocks)') capacity.free += Number(el['VALUE'][0])
                             })
@@ -170,6 +169,56 @@ export default class cVNX {
                         result[command] = dss
                         break;
                     } //case datastores
+                        
+                    case 'alerts': {
+
+                        let alerts:any = []
+                        let params:any = await naviseccli(thisClass.server.ip, thisClass.account, 'faults -list', false)
+
+                        params.forEach(function (el:any) {
+                            alerts.push({'Name':el['$']['NAME'], 'Value':el['VALUE'][0]})
+                        });
+
+                        result[command] = alerts
+                        break;
+                    } //case alerts
+                    
+                    //storage processors uptime
+                    case 'uptime': {
+
+                        let sps:any = {}
+
+                        /*let paramsTime:any = await naviseccli(thisClass.server.ip, thisClass.account, 'getsptime', true)
+                        paramsTime.forEach(function (el:any) {
+                            let time = new Date(el['VALUE'][0]).getTime() / 1000
+                            //Math.floor(new Date().getTime() / 1000)
+                            sps[el['$']['NAME'].replace('Time on ', '')] = { time:0, uptime:0 }
+                            sps[el['$']['NAME'].replace('Time on ', '')]['time'] = time
+                        });*/
+
+                        let paramsUptime:any = await naviseccli(thisClass.server.ip, thisClass.account, 'getspuptime', false)
+                        paramsUptime.forEach(function (el:any) {
+                            // convert uptime "391 days 18 hours 14 minutes" to seconds
+                            let uptime = el['VALUE'][0].match(/[\d]+/g).reduce((acc:number,val:number,ind:number)=>{let sec = [86400,3600,60]; return acc + (val * sec[ind]);}, 0)
+                            let nodeName = el['$']['NAME'].replace(' Uptime', '')
+                            sps[nodeName] = { uptime:0 }
+                            sps[nodeName].uptime = uptime
+                        });
+
+                        let currentTime = Math.floor(new Date().getTime() / 1000)
+
+                        result[command] = Object.keys(sps).map((key:string) => {
+                            let nNode = { 
+                                node: key, 
+                                time: currentTime, /*sps[key]['time']*/
+                                uptime: sps[key]['uptime'] 
+                            }
+                            return nNode;
+                        })
+                        break;
+                    } //case uptime
+                        
+                    
 
                 } //switch
 
