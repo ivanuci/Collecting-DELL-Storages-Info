@@ -29,7 +29,8 @@ Promise.all(servers.map((server:any) => {
             case 'VNX': { cs = new cVNX(server, accounts.vnx); break; }
         }
 
-        return cs.request(['capacity','datastores']);
+        //storage 'info' is gathered by default
+        return cs.request(['capacity','datastores','alerts','uptime']);
     }))
 
     .then( (results:any) => {
@@ -38,10 +39,11 @@ Promise.all(servers.map((server:any) => {
 
             for (let result of results) {
     
-                //info is gathered by default
                 console.log(result['info'])
                 console.log(result['capacity'])
                 console.log(result['datastores'])
+                console.log(result['alerts'])
+                console.log(result['uptime'])
             }
 
             const fs = require('fs');
