@@ -51,7 +51,10 @@ export default class cUnity {
   
 
   constructor(server: any, account: Account) {
+    
     this.server = server;
+
+    var axiosTimeout = 5000
 
     this.headersBasic = {
       Authorization:
@@ -91,6 +94,7 @@ export default class cUnity {
       headers: this.headersBasic,
       jar: this.cookieJar,
       withCredentials: true,
+      timeout: axiosTimeout,
     };
 
     this.configLogout = {
@@ -100,6 +104,7 @@ export default class cUnity {
       url: `https://${server.ip}/api/types/loginSessionInfo/action/logout`,
       headers: this.headersToken,
       data: { localCleanupOnly: true },
+      timeout: axiosTimeout,
     };
 
     this.configDisks = {
@@ -110,6 +115,7 @@ export default class cUnity {
       headers: this.headersToken,
       jar: this.cookieJar,
       withCredentials: true,
+      timeout: axiosTimeout,
     };
 
     this.configCapacity = {
@@ -120,6 +126,7 @@ export default class cUnity {
       headers: this.headersToken,
       jar: this.cookieJar,
       withCredentials: true,
+      timeout: axiosTimeout,
     };
 
     this.configTier = {
@@ -130,6 +137,7 @@ export default class cUnity {
       headers: this.headersToken,
       jar: this.cookieJar,
       withCredentials: true,
+      timeout: axiosTimeout,
     };
 
     this.configDatastores = {
@@ -140,6 +148,7 @@ export default class cUnity {
       headers: this.headersToken,
       jar: this.cookieJar,
       withCredentials: true,
+      timeout: axiosTimeout,
     };
     
     this.configAlerts = {
@@ -149,7 +158,8 @@ export default class cUnity {
         url: `https://${server.ip}/api/types/alert/instances?fields=id,severity,description,component,message,resolution,timestamp,isAcknowledged,state&compact=true`, //&filter=state!=2&compact=true`,
         headers : this.headersToken,
         jar: this.cookieJar,
-        withCredentials: true
+        withCredentials: true,
+        timeout: axiosTimeout,
     }
 
     this.configUptimeFirst = {
@@ -160,6 +170,7 @@ export default class cUnity {
         headers : this.headersToken,
         jar: this.cookieJar,
         withCredentials: true,
+        timeout: axiosTimeout,
         data: { 
             "paths": ["sp.*.cpu.uptime"],
             "interval": "5"
@@ -173,7 +184,8 @@ export default class cUnity {
         url: `https://${server.ip}/api/types/metricQueryResult/instances?filter=queryId EQ `, 
         headers : this.headersToken,
         jar: this.cookieJar,
-        withCredentials: true
+        withCredentials: true,
+        timeout: axiosTimeout,
     }    
     
   }
