@@ -52,7 +52,7 @@ export default class cVNX {
         let naviseccli:any = async function(server:any, account:Account, args:string, extParamvalue:boolean = true) {
             
             let paramArray:any = []
-            let login = ['-User', account.username, '-Password', account.password, '-Scope', '0', '-Xml', '-h', server]
+            let login = ['-User', account.username, '-Password', account.password, '-Scope', '0', '-Timeout', "10", '-Xml', '-h', server]
 
             try {
                 let response = spawn('/opt/Navisphere/bin/naviseccli', login.concat(args.split(" ")))
@@ -63,8 +63,10 @@ export default class cVNX {
                 }
     
                 await parseString(dataXml, function (err:any, data:any) {
-                    paramArray = data['CIM']['MESSAGE'][0]['SIMPLERSP'][0]['METHODRESPONSE'][0]['PARAMVALUE']   //pools, alerts
-                    if (extParamvalue) paramArray = paramArray[0]['VALUE'][0]['PARAMVALUE']                     //others
+                    if (data && 'CIM' in data) {
+                        paramArray = data['CIM']['MESSAGE'][0]['SIMPLERSP'][0]['METHODRESPONSE'][0]['PARAMVALUE']   //pools, alerts
+                        if (extParamvalue) paramArray = paramArray[0]['VALUE'][0]['PARAMVALUE']                     //others    
+                    }
                 })    
             }
             catch (err){
@@ -79,6 +81,9 @@ export default class cVNX {
             //info
             let agent:any = {}
             let params = await naviseccli(thisClass.server.ip, thisClass.account,'getagent')
+            
+            if (!(params && params.length > 0)) throw new Error("VNX Info missing!");
+            
             params.forEach(function (el:any) {
                 agent[el['$']['NAME']] = el['VALUE'][0]
             })
