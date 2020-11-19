@@ -49,7 +49,10 @@ export default class cIsilon {
   
 
   constructor(server: any, account: Account) {
+    
     this.server = server;
+
+    var axiosTimeout = 5000
 
     this.headersBasic = {
       Accept: "application/json",
@@ -80,6 +83,7 @@ export default class cIsilon {
       headers: this.headersBasic,
       jar: this.cookieJar,
       withCredentials: true,
+      timeout: axiosTimeout,
       data: this.dataLogin,
     };
 
@@ -91,6 +95,7 @@ export default class cIsilon {
       headers: this.headersBasic,
       jar: this.cookieJar,
       withCredentials: true,
+      timeout: axiosTimeout,
     };
 
     this.configDisks = {
@@ -101,6 +106,7 @@ export default class cIsilon {
       headers: this.headersBasic,
       jar: this.cookieJar,
       withCredentials: true,
+      timeout: axiosTimeout,
     };
 
     this.configCapacity = {
@@ -111,6 +117,7 @@ export default class cIsilon {
       headers: this.headersBasic,
       jar: this.cookieJar,
       withCredentials: true,
+      timeout: axiosTimeout,
     };
 
     this.configDatastores = {
@@ -121,6 +128,7 @@ export default class cIsilon {
       headers: this.headersBasic,
       jar: this.cookieJar,
       withCredentials: true,
+      timeout: axiosTimeout,
     };
 
     this.configAlerts = {
@@ -130,7 +138,8 @@ export default class cIsilon {
         url: `https://${server.ip}:8080/platform/3/event/eventgroup-occurrences?resolved=false&ignore=false`,
         headers : this.headersBasic,
         jar: this.cookieJar,
-        withCredentials: true
+        withCredentials: true,
+        timeout: axiosTimeout,
     }
 
     this.configUptime = {
@@ -140,7 +149,8 @@ export default class cIsilon {
         url: `https://${server.ip}:8080/platform/1/statistics/current?key=node.uptime&devid=all`,
         headers : this.headersBasic,
         jar: this.cookieJar,
-        withCredentials: true
+        withCredentials: true,
+        timeout: axiosTimeout,
     }    
  
   }
