@@ -46,8 +46,11 @@ export default class cXIO {
   private configUptime: any;
 
   constructor(server: any, account: Account) {
+    
     this.server = server;
 
+    var axiosTimeout = 5000
+    
     this.headersBasic = {
       Authorization:
         "Basic " +
@@ -72,6 +75,7 @@ export default class cXIO {
       httpsAgent: this.httpsAgent,
       url: `https://${server.ip}/api/json/v2/types/clusters/${server.cluster}`,
       headers: this.headersBasic,
+      timeout: axiosTimeout,
     };
 
     this.configDisks = {
@@ -80,6 +84,7 @@ export default class cXIO {
       httpsAgent: this.httpsAgent,
       url: `https://${server.ip}/api/json/v2/types/local-disks?cluster-index=${server.cluster}&full=1`,
       headers: this.headersBasic,
+      timeout: axiosTimeout,
     };
 
     this.configDatastores = {
@@ -88,6 +93,7 @@ export default class cXIO {
       httpsAgent: this.httpsAgent,
       url: `https://${server.ip}/api/json/v2/types/volumes?cluster-index=${server.cluster}&full=1&prop=name&prop=naa-name&prop=vol-size&prop=obj-severity&prop=logical-space-in-use`,
       headers: this.headersBasic,
+      timeout: axiosTimeout,
     };
     
     this.configAlerts = {
@@ -96,6 +102,7 @@ export default class cXIO {
         httpsAgent: this.httpsAgent,
         url: `https://${server.ip}/api/json/v2/types/alerts?full=1`,
         headers : this.headersBasic,
+        timeout: axiosTimeout,
     }
 
     this.configUptime = {
@@ -104,6 +111,7 @@ export default class cXIO {
         httpsAgent: this.httpsAgent,
         url: `https://${server.ip}/api/json/v2/types/storage-controllers?cluster-index=${server.cluster}&full=1`,
         headers : this.headersBasic,
+        timeout: axiosTimeout,
     }
 
   }
