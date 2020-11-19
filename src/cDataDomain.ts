@@ -40,8 +40,11 @@ export default class cDataDomain {
   private configAlerts: any;
 
   constructor(server: any, account: Account) {
+    
     this.server = server;
 
+    var axiosTimeout = 5000
+    
     this.headersBasic = {
       Accept: "application/json",
       "Content-Type": "application/json",
@@ -63,6 +66,7 @@ export default class cDataDomain {
       httpsAgent: this.httpsAgent,
       url: `https://${server.ip}:3009/rest/v1.0/auth`,
       headers: this.headersBasic,
+      timeout: axiosTimeout,
       data: {
         auth_info: { username: account.username, password: account.password },
       },
@@ -73,6 +77,7 @@ export default class cDataDomain {
       proxy: false,
       httpsAgent: this.httpsAgent,
       url: `https://${server.ip}:3009/rest/v1.0/auth`,
+      timeout: axiosTimeout,
       headers: this.headersToken,
     };
 
@@ -81,6 +86,7 @@ export default class cDataDomain {
       proxy: false,
       httpsAgent: this.httpsAgent,
       url: `https://${server.ip}:3009/rest/v1.0/system`,
+      timeout: axiosTimeout,
       headers: this.headersToken,
     };
 
@@ -89,6 +95,7 @@ export default class cDataDomain {
       proxy: false,
       httpsAgent: this.httpsAgent,
       url: `https://${server.ip}:3009/rest/v1.0/dd-systems/0/mtrees`,
+      timeout: axiosTimeout,
       headers: this.headersToken,
     };
     
@@ -98,6 +105,7 @@ export default class cDataDomain {
         proxy: false,
         httpsAgent: this.httpsAgent,
         url: `https://${server.ip}:3009/rest/v1.0/dd-systems/0/alerts/notify-lists`, ///notify-lists/default
+        timeout: axiosTimeout,
         headers : this.headersToken
     }
     
